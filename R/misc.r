@@ -31,7 +31,38 @@
                     sashtml5=sasopts, sashtml5log=sasopts))
     knitr::opts_chunk$set(error=TRUE, comment=NA)
     
+    knitr::knit_hooks$set(source = function(x, options) {
+        if (!is.null(options$hilang)) {
+            textarea_id <- paste(sample(LETTERS, 5), collapse = "")
+            code_open <- paste0("\n\n<textarea id=\"", textarea_id, "\">\n")
+            code_close <- "\n</textarea>"
+            jscript_editor <- paste0("\n<script> var codeElement = document.getElementById(\"", textarea_id, "\"); var editor = null; if (null != codeElement) { editor = CodeMirror.fromTextArea(codeElement, { lineNumbers: true, readOnly: true, viewportMargin: Infinity, mode: 'text/x-", tolower(options$hilang), "' }); } </script>\n")
+            
+            # if the option from_file is set to true then assume that
+            #   whatever is in the code chunk is a file path
+            if (!is.null(options$from_file) && options$from_file) {
+                code_body <- readLines(file.path(x))   
+            } else {
+                code_body <- x
+            }
+            
+            knitr::asis_output(
+                htmltools::htmlPreserve(
+                    stringr::str_c(
+                        code_open,
+                        paste(code_body, collapse = "\n"),
+                        code_close,
+                        jscript_editor
+                    )
+                )
+            )
+        } else {
+            stringr::str_c("\n\n```", tolower(options$engine), "\n", paste(x, collapse = "\n", "\n```\n\n"))
+        }
+    })
     
+    knitr::set_header(highlight = "<link rel=\"stylesheet\" href=\"inst/lib/codemirror.css\">\n<script src=\"inst/lib/codemirror.js\"></script>\n<script src=\"inst/mod/sas.js\"></script>\n<style>.CodeMirror {\nborder: 1px solid #eee;\nheight: auto;\n}\n</style>") 
+
     packageStartupMessage("sas, saslog, sashtml, sashtml5, and sashtmllog & sashtml5log engines")
     packageStartupMessage("   are now ready to use.")
 }

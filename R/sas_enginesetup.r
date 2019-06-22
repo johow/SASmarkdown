@@ -7,6 +7,7 @@ sas_enginesetup <- function (...) {
             if (options$engine %in% c("sashtml", "sashtmllog", "sashtml5", "sashtml5log") &&
                 options$results != "hide") {
             options$results = "asis"
+            options$hilang = "sas"
             }
             options
             })
